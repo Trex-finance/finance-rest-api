@@ -1,43 +1,49 @@
 import time
+from typing import List
 
 import requests
-from pytictoc import TicToc
-from typing import List
-from bs4 import BeautifulSoup
 
 from FinanceClasses import *
 from constants import *
 
 
-# REQ: Ticker (AAPL, GOOGL, AMZN)
-# Returns: CIK (CENTRAL INDEX KEY)
+#############################################################
+# Financial functions applicable only to
+# the SEC (United States Securities and Exchange Commission)
+#############################################################
+
 def get_company_data_by_ticker(ticker):
+    """
+    Retrieve information about a company
+
+    :param ticker: the company ticker (AMZN, GOOGL,AAPL,etc)
+    """
     ticker = ticker.upper()
-    t = TicToc()
 
     content = requests.get(SEC_COMPANY_TICKERS_DB_URL)
     if 200 <= content.status_code < 300:
-        t.tic()
         list_of_companies_data = content.json()
 
         for index in list_of_companies_data:
             if list_of_companies_data[index]['ticker'] == ticker:
-                t.toc(msg=f"CIK for {ticker} found after")
-
                 return Company(
                     company_title=list_of_companies_data[index]['title'],
                     company_ticker=list_of_companies_data[index]['ticker'],
                     company_cik=list_of_companies_data[index]['cik_str']
                 )
-
-        t.toc(msg=f"CIK for {ticker} not found, time passed")
-        return
+        return  # TODO: what do we do in case this happens?
     else:
         print(f"Networking error with status code: {content.status_code}")
         return
 
 
-def get_all_filings_by_cik(cik):
+def get_all_company_filings_by_cik(cik):
+    """
+    Retrieve information about a company
+
+    :param cik: the company CIK(read more here- https://www.sec.gov/edgar/searchedgar/cik.htm)
+    """
+
     filling_url = f"{SEC_EDGAR_BASE_URL}/{cik}/index.json"
     print(f"retrieving data from: {filling_url}")
 
@@ -90,14 +96,9 @@ def get_all_documents_urls_for_filling(cik, filling_list):
 # filter_time - if you leave this empty, this will fetch fillings from all time
 # TODO: add time filtering, because we fetch the fillings from the company ALL time which takes a lot of time.
 def get_company_filling_ping_data_by_company(company, filter_time=""):
-    t = TicToc()
-    t.tic()
-    company_all_filings = get_all_filings_by_cik(company.company_cik, "name")
+    company_all_filings = get_all_company_filings_by_cik(company.company_cik)
     sum_of_all_fillings = get_all_documents_urls_for_filling(company.company_cik, company_all_filings)
     time_now = int(time.time())
-    print("######################################################################")
-    print("######################################################################")
-    t.toc(msg="Script ran for")
     print(f"total fillings: {len(sum_of_all_fillings)}")
     print(f"time pinged: {time_now}")
     return CompanyFillingPing(

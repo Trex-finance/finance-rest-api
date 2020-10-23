@@ -1,7 +1,10 @@
 from typing import Optional
 from fastapi import FastAPI
+from fastapi.params import Body
+from pydantic.main import BaseModel
 
 # region API Initialization
+
 tags_metadata = [
     {
         "name": "metadata",
@@ -30,9 +33,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 # endregion
 
 # region Companies
+
+class Item(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    tax: Optional[float] = None
+
 
 # Output the company CIK
 @app.get("/{exchange_name}/{stock_ticker}/company_cik", tags=['companies'])
@@ -43,7 +54,7 @@ def get_company_cik(exchange_name: str, stock_ticker: str):
 # Output the details of the last submitted filing for {STOCK_TICKER} at {year}.
 @app.get("/{exchange_name}/{stock_ticker}/get_last_filling_for_company_in_year", tags=['companies'])
 def get_last_filling(exchange_name: str, stock_ticker: str,
-                                              filling_year: Optional[int] = None):
+                     filling_year: Optional[int] = None):
     return {f"{exchange_name}: {stock_ticker}, year: {filling_year}"}
 
 
@@ -70,7 +81,9 @@ def get_list_of_contributors():
 # endregion
 
 # region Testing
-@app.get("/items/{item_id}", tags=['testing'])
+
+
+@app.get("/test", tags=['testing'])
 def print_hello_world():
     return {"Hello world!"}
 # endregion

@@ -1,7 +1,6 @@
 from typing import Optional
+
 from fastapi import FastAPI
-from fastapi.params import Body
-from pydantic.main import BaseModel
 
 # region API Initialization
 
@@ -37,13 +36,6 @@ app = FastAPI(
 # endregion
 
 # region Companies
-
-class Item(BaseModel):
-    name: str
-    description: Optional[str] = None
-    price: float
-    tax: Optional[float] = None
-
 
 # Output the company CIK
 @app.get("/{exchange_name}/{stock_ticker}/company_cik", tags=['companies'])
